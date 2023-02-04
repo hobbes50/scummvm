@@ -100,11 +100,17 @@ void CoktelDecoder::setSurfaceMemory(void *mem, uint16 width, uint16 height, uin
 
 	// Sanity checks
 	assert((width > 0) && (height > 0));
-	assert(bpp == getPixelFormat().bytesPerPixel);
+	assert(bpp == getPixelFormat().bytesPerPixel || isPaletted());
 
 	// Create a surface over this memory
 	// TODO: Check whether it is fine to assume we want the setup PixelFormat.
-	_surface.init(width, height, width * bpp, mem, getPixelFormat());
+	Graphics::PixelFormat format = getPixelFormat();
+	if (format.bytesPerPixel != bpp) {
+		_tmpSurfBppConversion.create(width, height, format);
+		format = g_system->getScreenFormat();
+	}
+
+	_surface.init(width, height, width * bpp, mem, format);
 
 	_ownSurface = false;
 }
@@ -2478,12 +2484,14 @@ bool VMDDecoder::renderFrame(Common::Rect &rect) {
 
 	uint8 type = *dataPtr++;
 
+	bool palettedToHighColor = _surface.format.bytesPerPixel != _bytesPerPixel && _bytesPerPixel == 1;
+
 	if (type & 0x80) {
 		// Frame data is compressed
 
 		type &= 0x7F;
 
-		if ((type == 2) && (rect.width() == _surface.w) && (_x == 0) && (_blitMode == 0)) {
+		if ((type == 2) && (rect.width() == _surface.w) && (_x == 0) && (_blitMode == 0) && !palettedToHighColor) {
 			// Directly uncompress onto the video surface
 			const int offsetX = rect.left * _surface.format.bytesPerPixel;
 			const int offsetY = rect.top * _surface.pitch;
@@ -2511,6 +2519,10 @@ bool VMDDecoder::renderFrame(Common::Rect &rect) {
 		surface = &_8bppSurface[2];
 	}
 
+	if (palettedToHighColor) {
+		surface = &_tmpSurfBppConversion;
+	}
+
 	// Evaluate the block type
 	if      (type == 0x01) {
 		if (_isDouble)
@@ -2531,7 +2543,10 @@ bool VMDDecoder::renderFrame(Common::Rect &rect) {
 	else
 		renderBlockSparse2Y(*surface, dataPtr, *blockRect);
 
-	if (_blitMode > 0) {
+	if (palettedToHighColor) {
+		blitPalettedToHighColor(*surface, *blockRect);
+	}
+	else if (_blitMode > 0) {
 		if      (_bytesPerPixel == 2)
 			blit16(*surface, *blockRect);
 		else if (_bytesPerPixel == 3)
@@ -2592,6 +2607,27 @@ bool VMDDecoder::getRenderRects(const Common::Rect &rect,
 		return false;
 
 	return true;
+}
+
+void VMDDecoder::blitPalettedToHighColor(const Graphics::Surface &srcSurf, Common::Rect &rect) {
+	rect = Common::Rect(rect.left, rect.top, rect.right, rect.bottom);
+
+	rect.clip(_surface.w, _surface.h);
+
+	assert(isPaletted());
+
+	for (int x = rect.left; x < rect.left + rect.width(); x++) {
+		for (int y = rect.top; y < rect.top + rect.height(); y++) {
+			uint32 color = srcSurf.getPixel(x, y);
+
+			byte r = _palette[color * 3];
+			byte g = _palette[color * 3 + 1];
+			byte b = _palette[color * 3 + 2];
+
+			uint32 c = _surface.format.RGBToColor(r, g, b);
+			_surface.setPixel(x, y, c);
+		}
+	}
 }
 
 void VMDDecoder::blit16(const Graphics::Surface &srcSurf, Common::Rect &rect) {

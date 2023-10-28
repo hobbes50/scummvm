@@ -155,6 +155,8 @@ public:
 	/** Is the video paletted or true color? */
 	virtual bool isPaletted() const;
 
+	virtual uint32 getVideoBufferSize() const = 0;
+
 	/**
 	 * Get the current frame
 	 * @see VideoDecoder::getCurFrame()
@@ -311,6 +313,7 @@ public:
 	const Graphics::Surface *decodeNextFrame();
 
 	uint32 getFlags() const;
+	uint32 getVideoBufferSize() const;
 
 	Graphics::PixelFormat getPixelFormat() const;
 
@@ -345,6 +348,7 @@ public:
 	const Graphics::Surface *decodeNextFrame();
 
 	uint32 getFlags() const;
+	uint32 getVideoBufferSize() const;
 
 	Graphics::PixelFormat getPixelFormat() const;
 
@@ -452,6 +456,7 @@ public:
 	const Graphics::Surface *decodeNextFrame();
 
 	uint32 getFlags() const;
+	uint32 getVideoBufferSize() const;
 
 	Graphics::PixelFormat getPixelFormat() const;
 

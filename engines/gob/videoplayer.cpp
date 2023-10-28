@@ -519,6 +519,8 @@ bool VideoPlayer::playFrame(int slot, Properties &properties) {
 	bool primary = slot == 0;
 
 	if (video->decoder->getCurFrame() != properties.startFrame) {
+		if (video->live)
+			return true;
 
 		if (properties.startFrame != -1) {
 			// Seek into the middle of the video

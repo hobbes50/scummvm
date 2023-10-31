@@ -394,6 +394,10 @@ bool VideoPlayer::play(int slot, Properties &properties) {
 		if (properties.canceled)
 			break;
 
+		WRITE_VAR(11, properties.startFrame + 1);
+		if (slot >= 0 && slot < kVideoSlotWithCurFrameVarCount)
+			WRITE_VAR(53 + slot, properties.startFrame + 1);
+
 		properties.startFrame += backwards ? -1 : 1;
 
 		evalBgShading(*video);
@@ -449,8 +453,12 @@ bool VideoPlayer::isSoundPlaying() const {
 }
 
 void VideoPlayer::updateLive(bool force) {
-	for (int i = 0; i < kVideoSlotCount; i++)
+	for (int i = 0; i < kVideoSlotCount; i++) {
+		if (i >= 0 && i < kVideoSlotWithCurFrameVarCount)
+			WRITE_VAR(53 + i, -1);
+
 		updateLive(i, force);
+	}
 }
 
 void VideoPlayer::updateLive(int slot, bool force) {
@@ -458,19 +466,13 @@ void VideoPlayer::updateLive(int slot, bool force) {
 	if (!video || !video->live)
 		return;
 
-	int nbrOfLiveVideos = 0;
-	for (int i = 0; i < kVideoSlotCount; i++) {
-		Video *otherVideo = getVideoBySlot(i);
-		if (otherVideo && otherVideo->live)
-			++nbrOfLiveVideos;
-	}
+	if (slot >= 0 && slot < kVideoSlotWithCurFrameVarCount)
+		WRITE_VAR(53 + slot, video->decoder->getCurFrame());
 
 	if (video->properties.startFrame >= (int32)(video->decoder->getFrameCount() - 1)) {
 		// Video ended
 
 		if (!video->properties.loop) {
-			if (!(video->properties.flags & kFlagNoVideo) || nbrOfLiveVideos == 1)
-				WRITE_VAR_OFFSET(212, (uint32)-1);
 			_vm->_vidPlayer->closeVideo(slot);
 			return;
 		} else {
@@ -486,13 +488,14 @@ void VideoPlayer::updateLive(int slot, bool force) {
 	if (!force && (video->decoder->getTimeToNextFrame() > 0))
 		return;
 
-	if (!(video->properties.flags & kFlagNoVideo) || nbrOfLiveVideos == 1)
-		WRITE_VAR_OFFSET(212, video->properties.startFrame + 1);
 
 	bool backwards = video->properties.startFrame > video->properties.lastFrame;
 	playFrame(slot, video->properties);
 
 	video->properties.startFrame += backwards ? -1 : 1;
+
+	if (slot >= 0 && slot < kVideoSlotWithCurFrameVarCount)
+		WRITE_VAR(53 + slot, video->decoder->getCurFrame());
 
 	if (video->properties.fade) {
 		_vm->_palAnim->fade(_vm->_global->_pPaletteDesc, -2, 0);
@@ -563,8 +566,6 @@ bool VideoPlayer::playFrame(int slot, Properties &properties) {
 	}
 
 	const Graphics::Surface *surface = video->decoder->decodeNextFrame();
-
-	WRITE_VAR(11, video->decoder->getCurFrame());
 
 	uint32 ignoreBorder = 0;
 	if (_woodruffCohCottWorkaround && (properties.startFrame == 31)) {

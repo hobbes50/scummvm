@@ -814,6 +814,7 @@ void Game::evaluateScroll() {
 int16 Game::checkKeys(int16 *pMouseX, int16 *pMouseY,
 		MouseButtons *pButtons, char handleMouse) {
 
+	_vm->_vidPlayer->updateLive();
 	_vm->_util->processInput(true);
 
 	if (_vm->_mult->_multData && _vm->_inter->_variables &&

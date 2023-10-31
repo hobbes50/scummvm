@@ -100,7 +100,7 @@ void Util::processInput(bool scroll) {
 	int16 x = 0, y = 0;
 	bool hasMove = false;
 
-	_vm->_vidPlayer->updateLive();
+	//_vm->_vidPlayer->updateLive();
 
 	while (eventMan->pollEvent(event)) {
 		switch (event.type) {

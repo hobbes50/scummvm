@@ -390,7 +390,11 @@ bool VideoPlayer::play(int slot, Properties &properties) {
 	while ((properties.startFrame != properties.lastFrame) &&
 	       (properties.startFrame < (int32)(video->decoder->getFrameCount() - 1))) {
 
-		playFrame(slot, properties);
+		if (!playFrame(slot, properties)) {
+			_vm->_util->processInput();
+			_vm->_video->retrace();
+			continue;
+		}
 		if (properties.canceled)
 			break;
 
@@ -538,6 +542,9 @@ bool VideoPlayer::playFrame(int slot, Properties &properties) {
 		}
 
 	}
+
+	if (video->decoder->getTimeToNextFrame() > 0)
+		return false;
 
 	if (video->decoder->getCurFrame() > properties.startFrame)
 		// If the video is already beyond the wanted frame, skip

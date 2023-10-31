@@ -162,6 +162,7 @@ public:
 	 * @see VideoDecoder::getCurFrame()
 	 */
 	int getCurFrame() const;
+	int getNbFramesPastEnd() const;
 
 	/**
 	 * Decode the next frame
@@ -240,6 +241,7 @@ protected:
 	uint32 _features;
 
 	 int32 _curFrame;
+	 int32 _nbFramesPastEnd;
 	uint32 _frameCount;
 
 	uint32 _startTime;

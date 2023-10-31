@@ -391,7 +391,7 @@ bool VideoPlayer::play(int slot, Properties &properties) {
 	       (properties.startFrame < (int32)(video->decoder->getFrameCount() - 1))) {
 
 		if (video->live)
-			properties.startFrame = video->decoder->getCurFrame();
+			properties.startFrame = video->decoder->getCurFrame() + video->decoder->getNbFramesPastEnd();
 
 		if (!playFrame(slot, properties)) {
 			_vm->_util->processInput();
@@ -475,7 +475,7 @@ void VideoPlayer::updateLive(int slot, bool force) {
 		return;
 
 	if (slot >= 0 && slot < kVideoSlotWithCurFrameVarCount)
-		WRITE_VAR(53 + slot, video->decoder->getCurFrame());
+		WRITE_VAR(53 + slot, video->decoder->getCurFrame() + video->decoder->getNbFramesPastEnd());
 
 	video->properties.startFrame = video->decoder->getCurFrame();
 
@@ -506,7 +506,7 @@ void VideoPlayer::updateLive(int slot, bool force) {
 	//video->properties.startFrame += backwards ? -1 : 1;
 
 	if (slot >= 0 && slot < kVideoSlotWithCurFrameVarCount)
-		WRITE_VAR(53 + slot, video->decoder->getCurFrame());
+		WRITE_VAR(53 + slot, video->decoder->getCurFrame() + video->decoder->getNbFramesPastEnd());
 
 	if (video->properties.fade) {
 		_vm->_palAnim->fade(_vm->_global->_pPaletteDesc, -2, 0);

@@ -390,6 +390,9 @@ bool VideoPlayer::play(int slot, Properties &properties) {
 	while ((properties.startFrame != properties.lastFrame) &&
 	       (properties.startFrame < (int32)(video->decoder->getFrameCount() - 1))) {
 
+		if (video->live)
+			properties.startFrame = video->decoder->getCurFrame();
+
 		if (!playFrame(slot, properties)) {
 			_vm->_util->processInput();
 			_vm->_video->retrace();

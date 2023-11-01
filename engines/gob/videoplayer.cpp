@@ -285,6 +285,8 @@ bool VideoPlayer::closeVideo(int slot) {
 	if (!video)
 		return false;
 
+	debugC(3, kDebugVideo, "VideoPlayer::closeVideo() file=%s slot=%d", video->fileName.c_str(), slot);
+
 	video->close();
 	return true;
 }
@@ -496,15 +498,19 @@ void VideoPlayer::updateLive(int slot, bool force) {
 	if (slot >= 0 && slot < kVideoSlotWithCurFrameVarCount)
 		WRITE_VAR(53 + slot, video->decoder->getCurFrame() + video->decoder->getNbFramesPastEnd());
 
+	debugC(3, kDebugVideo, "VideoPlayer::updateLive() %s slot=%d, curFrame=%d -> var(%d)", video->fileName.c_str(), slot, video->decoder->getCurFrame(), 53 + slot);
+
 	video->properties.startFrame = video->decoder->getCurFrame();
 
 	if (video->properties.startFrame >= (int32)(video->decoder->getFrameCount() - 1)) {
 		// Video ended
 
 		if (!video->properties.loop) {
+			debugC(3, kDebugVideo, "VideoPlayer::updateLive() %s slot=%d, curFrame=%d -> close",  video->fileName.c_str(), slot, video->decoder->getCurFrame());
 			_vm->_vidPlayer->closeVideo(slot);
 			return;
 		} else {
+			debugC(3, kDebugVideo, "VideoPlayer::updateLive() %s slot=%d, curFrame=%d -> loop", video->fileName.c_str(), slot, video->decoder->getCurFrame());
 			video->decoder->seek(0, SEEK_SET, true);
 			video->properties.startFrame = -1;
 		}
@@ -540,6 +546,9 @@ bool VideoPlayer::playFrame(int slot, Properties &properties) {
 
 	bool primary = slot == 0;
 
+	debugC(3, kDebugVideo, "VideoPlayer::playFrame() %s slot=%d, startFrame=%d, lastFrame=%d",
+		   video->fileName.c_str(),
+		   slot, properties.startFrame, properties.lastFrame);
 	if (video->decoder->getCurFrame() != properties.startFrame) {
 		if (video->live)
 			return true;

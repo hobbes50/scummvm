@@ -498,6 +498,10 @@ void VideoPlayer::updateLive(int slot, bool force) {
 	if (slot >= 0 && slot < kVideoSlotWithCurFrameVarCount)
 		WRITE_VAR(53 + slot, video->decoder->getCurFrame() + video->decoder->getNbFramesPastEnd());
 
+	if (video->decoder->hasVideo() &&
+		!(video->properties.flags & 0x100))
+		return;
+
 	debugC(3, kDebugVideo, "VideoPlayer::updateLive() %s slot=%d, curFrame=%d -> var(%d)", video->fileName.c_str(), slot, video->decoder->getCurFrame(), 53 + slot);
 
 	video->properties.startFrame = video->decoder->getCurFrame();

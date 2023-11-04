@@ -97,21 +97,27 @@ void VideoPlayer::evaluateFlags(Properties &properties) {
 		properties.sprite = Draw::kBackSurface;
 }
 
-int VideoPlayer::openVideo(bool primary, const Common::String &file, Properties &properties) {
-	int slot = kPrimaryVideoSlot;
-
-	Video *video = nullptr;
-	// Check whether a slot is already open for this file
-	for (int i = 0; i < kVideoSlotCount; i++) {
+int VideoPlayer::getOpenSlotFromFileName(const Common::String &file, bool onlyLiveVideos) const {
+	int slot = -1;
+	for (int i = 0; i < (onlyLiveVideos ? kLiveVideoSlotCount : kVideoSlotCount); i++) {
 		if (_videoSlots[i].isEmpty())
 			continue;
 
 		if (_videoSlots[i].fileName.equalsIgnoreCase(file)) {
 			slot = i;
-			video = &_videoSlots[i];
 			break;
 		}
 	}
+
+	return slot;
+}
+
+int VideoPlayer::openVideo(bool primary, const Common::String &file, Properties &properties) {
+	Video *video = nullptr;
+	// Check whether a slot is already open for this file
+	int slot = getOpenSlotFromFileName(file, false);
+	if (slot >= 0)
+		video = &_videoSlots[slot];
 
 	if (video == nullptr) {
 		if (properties.slot >= 0 && properties.slot < kVideoSlotCount) {
@@ -277,8 +283,11 @@ bool VideoPlayer::closeVideo(int slot) {
 	return true;
 }
 
-void VideoPlayer::closeLiveSound() {
-	for (int i = 1; i < kVideoSlotCount; i++) {
+void VideoPlayer::closeLiveVideos(int exceptSlot) {
+	for (int i = 1; i < kLiveVideoSlotCount; i++) {
+		if (i == exceptSlot)
+			continue;
+
 		Video *video = getVideoBySlot(i);
 		if (!video)
 			continue;

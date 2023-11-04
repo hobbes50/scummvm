@@ -114,10 +114,12 @@ public:
 
 	void evaluateFlags(Properties &properties);
 
+	int getOpenSlotFromFileName(const Common::String &file, bool onlyLiveVideos) const;
+
 	int  openVideo(bool primary, const Common::String &file, Properties &properties);
 	bool closeVideo(int slot = 0);
 
-	void closeLiveSound();
+	void closeLiveVideos(int exceptSlot = -1);
 	void closeAll();
 
 	bool reopenVideo(int slot = 0);
@@ -169,7 +171,7 @@ public:
 
 private:
 	struct Video {
-		::Video::CoktelDecoder *decoder;
+		::Video::CoktelDecoder *decoder = nullptr;
 		Common::String fileName;
 
 		SurfacePtr surface;

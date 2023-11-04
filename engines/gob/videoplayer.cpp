@@ -149,6 +149,12 @@ int VideoPlayer::openVideo(bool primary, const Common::String &file, Properties 
 	if (!video->isEmpty() && (video->fileName.compareToIgnoreCase(file) != 0))
 		video->close();
 
+	if (file.empty() || file.equalsIgnoreCase("RIEN")) {
+		// An empty filename means that we just need to close any existing video in the slot
+		// "RIEN" (French for "nothing") is an alias for that
+		return -1;
+	}
+
 	// No video => load the requested file
 	if (video->isEmpty()) {
 		// Open the video

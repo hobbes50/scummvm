@@ -615,11 +615,6 @@ void Inter_v7::o7_playVmdOrMusic() {
 		_vm->_vidPlayer->closeLiveVideos(openSlotLive);
 	}
 
-	if (file == "RIEN") {
-		_vm->_vidPlayer->closeLiveVideos();
-		return;
-	}
-
 	bool close = false;
 	if (props.lastFrame == -1) {
 		close = true;
@@ -695,8 +690,6 @@ void Inter_v7::o7_playVmdOrMusic() {
 		_vm->_sound->bgPlay(file.c_str(), SOUND_WAV);
 		return;
 	} else if (props.lastFrame <= -10) {
-		_vm->_vidPlayer->closeVideo();
-
 		if (props.lastFrame <= -100) {
 			// The original does an early return here if the video is not in the cache
 			// if (video not in cache)
@@ -727,8 +720,8 @@ void Inter_v7::o7_playVmdOrMusic() {
 	if (props.noBlock && (props.flags & VideoPlayer::kFlagNoVideo))
 		primary = false;
 
-	int slot = 0;
-	if (!file.empty() && ((slot = _vm->_vidPlayer->openVideo(primary, file, props)) < 0)) {
+	int slot = _vm->_vidPlayer->openVideo(primary, file, props);
+	if (slot < 0) {
 		WRITE_VAR(11, (uint32) -1);
 		return;
 	}

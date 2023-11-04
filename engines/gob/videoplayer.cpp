@@ -408,8 +408,7 @@ bool VideoPlayer::play(int slot, Properties &properties) {
 	if (_vm->_draw->_renderFlags & RENDERFLAG_DOUBLEVIDEO)
 		video->decoder->setDouble(true);
 
-	while ((properties.startFrame != properties.lastFrame) &&
-	       (properties.startFrame < (int32)(video->decoder->getFrameCount() - 1))) {
+	while (properties.startFrame < properties.lastFrame) {
 
 		if (video->live)
 			properties.startFrame = video->decoder->getCurFrame() + video->decoder->getNbFramesPastEnd();
@@ -548,7 +547,7 @@ bool VideoPlayer::playFrame(int slot, Properties &properties) {
 	if (!video)
 		return false;
 
-	bool primary = slot == 0;
+	bool primary = slot >= 0 && slot < kLiveVideoSlotCount;
 
 	debugC(3, kDebugVideo, "VideoPlayer::playFrame() %s slot=%d, startFrame=%d, lastFrame=%d",
 		   video->fileName.c_str(),
@@ -678,6 +677,7 @@ bool VideoPlayer::playFrame(int slot, Properties &properties) {
 	if (properties.breakKey != 0)
 		checkAbort(*video, properties);
 
+	// Should we remove this for Adibou Scicnes ? Doing it make the videos laggy
 	if ((video->decoder->getCurFrame() - 1) < properties.startFrame)
 		// The video played a frame we actually didn't want, so we have to adjust
 		properties.startFrame--;

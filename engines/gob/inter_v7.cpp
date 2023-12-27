@@ -95,6 +95,7 @@ void Inter_v7::setupOpcodesDraw() {
 	OPCODEDRAW(0xA4, o7_loadIFFPalette);
 	OPCODEDRAW(0xAA, o7_draw0xAA);
 	OPCODEDRAW(0xAC, o7_draw0xAC);
+	OPCODEDRAW(0xAE, o7_draw0xAE);
 	OPCODEDRAW(0xAF, o7_draw0xAF);
 	OPCODEDRAW(0xB0, o7_draw0xB0);
 	OPCODEDRAW(0xB1, o7_draw0xB1);
@@ -115,6 +116,10 @@ void Inter_v7::setupOpcodesDraw() {
 	OPCODEDRAW(0xE2, o7_draw0xE2);
 	OPCODEDRAW(0xE3, o7_draw0xE3);
 	OPCODEDRAW(0xE4, o7_draw0xE4);
+	OPCODEDRAW(0xE6, o7_draw0xE6);
+	OPCODEDRAW(0xE7, o7_draw0xE7);
+	OPCODEDRAW(0xFA, o7_vmdGetSoundBuffer);
+	OPCODEDRAW(0xFB, o7_vmdReleaseSoundBuffer);
 }
 
 void Inter_v7::setupOpcodesFunc() {
@@ -1035,6 +1040,11 @@ void Inter_v7::o7_draw0xAC() {
 	_vm->_game->_script->readValExpr();
 	warning("STUB: o7_draw0xAC (Adibou/Anglais)");
 }
+
+void Inter_v7::o7_draw0xAE() {
+	_vm->_game->_script->readValExpr();
+	_vm->_game->_script->readValExpr();
+	warning("STUB: o7_draw0xAE (Adibou/Musique)");
 }
 
 void Inter_v7::o7_draw0xAF() {
@@ -1166,6 +1176,30 @@ void Inter_v7::o7_draw0xE3() {
 void Inter_v7::o7_draw0xE4() {
 	warning("STUB: o7_draw0xE4 (Adibou/Anglais)");
 }
+
+void Inter_v7::o7_draw0xE6() {
+	_vm->_game->_script->readVarIndex();
+	_vm->_game->_script->readVarIndex();
+	_vm->_game->_script->readVarIndex();
+	_vm->_game->_script->readVarIndex();
+	warning("STUB: o7_draw0xE6 (Adibou/Musique)");
+};
+
+void Inter_v7::o7_draw0xE7() {
+	_vm->_game->_script->readVarIndex();
+	warning("STUB: o7_draw0xE7 (Adibou/Musique)");
+};
+
+void Inter_v7::o7_vmdGetSoundBuffer() {
+	_vm->_game->_script->readValExpr();
+	_vm->_game->_script->readVarIndex();
+	warning("STUB: o7_vmdGetSoundBuffer (Adibou/Musique)");
+};
+
+void Inter_v7::o7_vmdReleaseSoundBuffer() {
+	_vm->_game->_script->readVarIndex();
+	warning("STUB: o7_vmdReleaseSoundBuffer (Adibou/Musique)");
+};
 
 
 void Inter_v7::o7_printText(OpFuncParams &params) {

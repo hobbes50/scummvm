@@ -804,7 +804,10 @@ void Inter_v7::o7_openItk() {
 }
 
 void Inter_v7::o7_findFile() {
-	Common::Path file_pattern(getFile(_vm->_game->_script->evalString()));
+	const char* filePatternStr = _vm->_game->_script->evalString();
+	bool isPattern = Common::String(filePatternStr).contains('*') || Common::String(filePatternStr).contains('?');
+
+	Common::Path filePattern(getFile(filePatternStr, !isPattern), '\\');
 	Common::ArchiveMemberList files;
 
 	SearchMan.listMatchingMembers(files, filePattern);
@@ -823,7 +826,7 @@ void Inter_v7::o7_findFile() {
 	}
 
 	debugC(5, kDebugFileIO, "o7_findFile(%s): %d matches (%d including duplicates)",
-		   file_pattern.toString().c_str(),
+		   filePattern.toString().c_str(),
 		   filesWithoutDuplicates.size(),
 		   files.size());
 
@@ -834,7 +837,7 @@ void Inter_v7::o7_findFile() {
 		Common::String file = files.front()->getName();
 		filesWithoutDuplicates.pop_front();
 		debugC(5, kDebugFileIO, "o7_findFile(%s): first match = %s",
-			   file_pattern.toString().c_str(),
+			   filePattern.toString().c_str(),
 			   file.c_str());
 
 		storeString(file.c_str());

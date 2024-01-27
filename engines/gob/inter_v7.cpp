@@ -1525,6 +1525,11 @@ void Inter_v7::o7_readData(OpFuncParams &params) {
 	int32  offset  = _vm->_game->_script->evalInt();
 	int32  retSize = 0;
 
+	if (size == 0) {
+		dataVar = 0;
+		size = _vm->_game->_script->getVariablesCount() * 4;
+	}
+
 	debugC(2, kDebugFileIO, "Read from file \"%s\" (%d, %d bytes at %d)",
 		   file.c_str(), dataVar, size, offset);
 
@@ -1605,6 +1610,11 @@ void Inter_v7::o7_writeData(OpFuncParams &params) {
 		   file.c_str(), dataVar, size, offset);
 
 	WRITE_VAR(1, 1);
+
+	if (size == 0) {
+		dataVar = 0;
+		size = _vm->_game->_script->getVariablesCount() * 4;
+	}
 
 	SaveLoad::SaveMode mode = _vm->_saveLoad ? _vm->_saveLoad->getSaveMode(file.c_str()) : SaveLoad::kSaveModeNone;
 	if (mode == SaveLoad::kSaveModeSave) {

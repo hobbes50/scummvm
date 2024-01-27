@@ -1045,7 +1045,7 @@ Common::OutSaveFile *SaveWriter::openSave(const Common::String &fileName) {
 		return nullptr;
 
 	Common::SaveFileManager *saveMan = g_system->getSavefileManager();
-	return saveMan->openForSaving(fileName);
+	return saveMan->openForSaving(fileName, false);
 }
 
 Common::OutSaveFile *SaveWriter::openSave() {

@@ -21,6 +21,7 @@
 
 #include "common/ptr.h"
 #include "common/stream.h"
+#include "common/substream.h"
 #include "common/system.h"
 #include "common/textconsole.h"
 
@@ -52,8 +53,14 @@ public:
 	byte getPaletteStartIndex() const override { return 0; }
 	uint16 getPaletteCount() const override { return 256; }
 
-	/** Read the cursor's data out of a stream. */
+	/** Read the cursor's image data out of a stream. */
+	bool readImageData(Common::SeekableReadStream &stream);
+
+	/** Read the cursor's data out of a stream (hotspotX + hotspotY + readImageData()). */
 	bool readFromStream(Common::SeekableReadStream &stream);
+
+	void setHotspotX(uint16 x) { _hotspotX = x; }
+	void setHotspotY(uint16 y) { _hotspotY = y; }
 
 private:
 	WinCursor() = delete;
@@ -107,7 +114,7 @@ byte WinCursor::getKeyColor() const {
 	return _keyColor;
 }
 
-bool WinCursor::readFromStream(Common::SeekableReadStream &stream) {
+bool WinCursor::readImageData(Common::SeekableReadStream &stream) {
 	clear();
 
 	const bool supportOpacity = g_system->hasFeature(OSystem::kFeatureCursorMask);
@@ -247,7 +254,7 @@ bool WinCursor::readFromStream(Common::SeekableReadStream &stream) {
 					byte &maskByte = _mask[y * _width + x];
 
 					if (isTransparent) {
-						maskByte = 0;
+						maskByte = kCursorMaskTransparent;
 					} else {
 						// Inverted, if the backend supports invert then emit an inverted pixel, otherwise opaque
 						maskByte = supportInvert ? kCursorMaskInvert : kCursorMaskOpaque;
@@ -269,6 +276,13 @@ bool WinCursor::readFromStream(Common::SeekableReadStream &stream) {
 
 	delete[] initialSource;
 	return true;
+}
+
+bool WinCursor::readFromStream(Common::SeekableReadStream &stream) {
+	_hotspotX = stream.readUint16LE();
+	_hotspotY = stream.readUint16LE();
+
+	return readImageData(stream);
 }
 
 void WinCursor::clear() {
@@ -324,6 +338,53 @@ WinCursorGroup *WinCursorGroup::createCursorGroup(Common::WinResources *exe, con
 
 		CursorItem item;
 		item.id = cursorId;
+		item.cursor = cursor;
+		group->cursors.push_back(item);
+	}
+
+	return group;
+}
+
+WinCursorGroup *WinCursorGroup::createCursorGroupFromCURFile(Common::SeekableReadStream &stream) {
+	if (stream.size() <= 6)
+		return nullptr;
+
+	stream.skip(4);
+	uint32 cursorCount = stream.readUint16LE();
+	if ((uint32)stream.size() < (6 + cursorCount * 16))
+		return nullptr;
+
+	WinCursorGroup *group = new WinCursorGroup();
+	group->cursors.reserve(cursorCount);
+
+	for (uint32 i = 0; i < cursorCount; i++) {
+		WinCursor *cursor = new WinCursor();
+		byte width = stream.readByte();
+		byte height = stream.readByte();
+		stream.readByte(); // num colors
+		stream.readByte(); // reserved
+		cursor->setHotspotX(stream.readUint16LE());
+		cursor->setHotspotY(stream.readUint16LE());
+
+		uint32 dataSize = stream.readUint32LE();
+		uint32 dataOffset = stream.readUint32LE();
+
+		Common::SeekableSubReadStream subStream(&stream, dataOffset, dataOffset + dataSize);
+		if (!cursor->readImageData(subStream)) {
+			delete cursor;
+			delete group;
+			return nullptr;
+		}
+
+		if (cursor->getWidth() != width || cursor->getHeight() != height) {
+			warning("Cursor %d actual dimensions (%dx%d) are different from header ones (%dx%d)",
+					i,
+					cursor->getWidth(), cursor->getHeight(),
+					width, height);
+		}
+
+		CursorItem item;
+		item.id = i;
 		item.cursor = cursor;
 		group->cursors.push_back(item);
 	}

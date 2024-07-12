@@ -64,6 +64,8 @@ struct WinCursorGroup {
 
 	/** Create a cursor group from an EXE, returns 0 on failure */
 	static WinCursorGroup *createCursorGroup(Common::WinResources *exe, const Common::WinResourceID &id);
+
+	static WinCursorGroup *createCursorGroupFromCURFile(Common::SeekableReadStream &stream);
 };
 
 /**

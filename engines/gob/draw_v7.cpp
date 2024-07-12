@@ -74,18 +74,33 @@ bool Draw_v7::loadCursorFromFile(Common::String cursorName) {
 	Graphics::WinCursorGroup *cursorGroup = nullptr;
 	Graphics::Cursor *defaultCursor = nullptr;
 
-	// Load the cursor file and cursor group
-	if (loadCursorFile())
-		cursorGroup = Graphics::WinCursorGroup::createCursorGroup(_cursors, Common::WinResourceID(cursorName));
+	const Graphics::Cursor *cursor = nullptr;
+
+	if (cursorName.hasPrefix("*")) {
+		// Load from an external .CUR file
+		cursorName = cursorName.substr(1);
+		Common::SeekableReadStream *cursorStream = _vm->_dataIO->getFile(cursorName);
+		if (cursorStream) {
+			cursorGroup = Graphics::WinCursorGroup::createCursorGroupFromCURFile(*cursorStream);
+		} else {
+			warning("External cursor file '%s' not found", cursorName.c_str());
+		}
+	} else {
+		// Load from a .DLL cursor file and cursor group
+		if (loadCursorFile())
+			cursorGroup = Graphics::WinCursorGroup::createCursorGroup(_cursors, Common::WinResourceID(cursorName));
+	}
+
+	if (cursorGroup && !cursorGroup->cursors.empty() && cursorGroup->cursors[0].cursor) {
+		cursor = cursorGroup->cursors[0].cursor;
+	}
 
 	// If the requested cursor does not exist, create a default one
-	const Graphics::Cursor *cursor = nullptr;
-	if (!cursorGroup || cursorGroup->cursors.empty() || !cursorGroup->cursors[0].cursor) {
+	if (!cursor) {
 		defaultCursor = Graphics::makeDefaultWinCursor();
-
 		cursor = defaultCursor;
-	} else
-		cursor = cursorGroup->cursors[0].cursor;
+	}
+
 
 	// Make sure the cursor sprite is big enough
 	if (_scummvmCursor->getWidth() != cursor->getWidth() || _scummvmCursor->getHeight() != cursor->getHeight()) {

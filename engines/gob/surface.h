@@ -156,6 +156,7 @@ public:
 	void recomputeHighColorMap(const byte *palette, const Graphics::PixelFormat &format);
 
 	static ImageType identifyImage(Common::SeekableReadStream &stream);
+	static bool getImageInfo(Common::SeekableReadStream &stream, uint32 &width, uint32 &height, uint32 &bpp);
 	static uint32*computeHighColorMap(const byte *palette, const Graphics::PixelFormat &format, int16 colorCount = 256);
 
 private:

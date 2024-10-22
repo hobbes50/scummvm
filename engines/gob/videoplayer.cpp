@@ -45,7 +45,7 @@ VideoPlayer::Properties::Properties() : type(kVideoTypeTry), sprite(Draw::kFront
 	startFrame(-1), lastFrame(-1), endFrame(-1), forceSeek(false),
 	breakKey(kShortKeyEscape), palCmd(8), palStart(0), palEnd(255), palFrame(-1),
 	noBlock(false), loop(false), fade(false), waitEndFrame(true),
-	hasSound(false), canceled(false), slot(-1) {
+	hasSound(false), canceled(false), noWaitSound(false), slot(-1) {
 
 }
 
@@ -498,7 +498,7 @@ void VideoPlayer::updateLive(int slot, bool force) {
 		WRITE_VAR(53 + slot, video->decoder->getCurFrame() + video->decoder->getNbFramesPastEnd());
 
 	if (video->decoder->hasVideo() &&
-		!(video->properties.flags & 0x100))
+		!video->properties.noWaitSound)
 		return;
 
 	debugC(3, kDebugVideo, "VideoPlayer::updateLive() %s slot=%d, curFrame=%d -> var(%d)", video->fileName.c_str(), slot, video->decoder->getCurFrame(), 53 + slot);
@@ -794,6 +794,14 @@ uint32 VideoPlayer::getFlags(int slot) const {
 		return 0;
 
 	return video->decoder->getFlags();
+}
+
+uint16 VideoPlayer::getSoundFlags(int slot) const {
+	const Video *video = getVideoBySlot(slot);
+	if (!video)
+		return 0;
+
+	return video->decoder->getSoundFlags();
 }
 
 uint32 VideoPlayer::getVideoBufferSize(int slot) const {

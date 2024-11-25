@@ -116,7 +116,7 @@ public:
 
 	void evaluateFlags(Properties &properties);
 
-	int getOpenSlotFromFileName(const Common::String &file, bool onlyLiveVideos) const;
+	int getOpenLiveVideoSlotFromFileName(const Common::String &file) const;
 
 	int  openVideo(bool primary, const Common::String &file, Properties &properties);
 	bool closeVideo(int slot = 0);

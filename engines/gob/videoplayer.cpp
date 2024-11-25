@@ -97,9 +97,9 @@ void VideoPlayer::evaluateFlags(Properties &properties) {
 		properties.sprite = Draw::kBackSurface;
 }
 
-int VideoPlayer::getOpenSlotFromFileName(const Common::String &file, bool onlyLiveVideos) const {
+int VideoPlayer::getOpenLiveVideoSlotFromFileName(const Common::String &file) const {
 	int slot = -1;
-	for (int i = 0; i < (onlyLiveVideos ? kLiveVideoSlotCount : kVideoSlotCount); i++) {
+	for (int i = 0; i < kLiveVideoSlotCount; i++) {
 		if (_videoSlots[i].isEmpty())
 			continue;
 
@@ -115,7 +115,7 @@ int VideoPlayer::getOpenSlotFromFileName(const Common::String &file, bool onlyLi
 int VideoPlayer::openVideo(bool primary, const Common::String &file, Properties &properties) {
 	Video *video = nullptr;
 	// Check whether a slot is already open for this file
-	int slot = getOpenSlotFromFileName(file, false);
+	int slot = getOpenLiveVideoSlotFromFileName(file);
 	if (slot >= 0)
 		video = &_videoSlots[slot];
 

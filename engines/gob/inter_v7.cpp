@@ -647,7 +647,7 @@ void Inter_v7::o7_playVmdOrMusic() {
 			props.x, props.y, props.startFrame, props.lastFrame,
 			props.palCmd, props.palStart, props.palEnd, props.flags);
 
-	//int openSlotLive = _vm->_vidPlayer->getOpenSlotFromFileName(file, true);
+	//int openSlotLive = _vm->_vidPlayer->getOpenLiveVideoSlotFromFileName(file);
 	// if (openSlotLive >= 0) {
 		// Close other live videos except this one
 		//_vm->_vidPlayer->closeLiveVideos(openSlotLive);

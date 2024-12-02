@@ -30,6 +30,7 @@
 #include "graphics/blit.h"
 #include "graphics/cursorman.h"
 #include "graphics/wincursor.h"
+#include "image/icocur.h"
 
 #include "gob/dataio.h"
 #include "gob/draw.h"
@@ -80,8 +81,16 @@ bool Draw_v7::loadCursorFromFile(Common::String cursorName) {
 		// Load from an external .CUR file
 		cursorName = cursorName.substr(1);
 		Common::SeekableReadStream *cursorStream = _vm->_dataIO->getFile(cursorName);
+
 		if (cursorStream) {
-			cursorGroup = Graphics::WinCursorGroup::createCursorGroupFromCURFile(*cursorStream);
+			Image::IcoCurDecoder cursorDecoder;
+			cursorDecoder.open(*cursorStream);
+
+			if (cursorDecoder.numItems() > 0) {
+				cursor = cursorDecoder.loadItemAsCursor(0);
+			} else {
+				warning("No cursor item found in file '%s'", cursorName.c_str());
+			}
 		} else {
 			warning("External cursor file '%s' not found", cursorName.c_str());
 		}
@@ -89,10 +98,10 @@ bool Draw_v7::loadCursorFromFile(Common::String cursorName) {
 		// Load from a .DLL cursor file and cursor group
 		if (loadCursorFile())
 			cursorGroup = Graphics::WinCursorGroup::createCursorGroup(_cursors, Common::WinResourceID(cursorName));
-	}
 
-	if (cursorGroup && !cursorGroup->cursors.empty() && cursorGroup->cursors[0].cursor) {
-		cursor = cursorGroup->cursors[0].cursor;
+		if (cursorGroup && !cursorGroup->cursors.empty() && cursorGroup->cursors[0].cursor) {
+			cursor = cursorGroup->cursors[0].cursor;
+		}
 	}
 
 	// If the requested cursor does not exist, create a default one

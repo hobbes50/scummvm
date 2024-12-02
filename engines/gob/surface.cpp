@@ -42,6 +42,8 @@
 #include "image/iff.h"
 #include "image/tga.h"
 
+#include "image/bmp.h"
+#include "image/jpeg.h"
 #include "video/coktel_decoder.h" // For CoktelDecoder::computeHighColorMap
 
 namespace Gob {
@@ -912,6 +914,15 @@ bool Surface::getImageInfo(Common::SeekableReadStream &stream, uint32 &width, ui
 	case kImageTypeIFF:
 		decoder.reset(new Image::IFFDecoder());
 		break;
+	case kImageTypeBRC:
+		warning("Surface::getImageInfo(): BRC images are not supported");
+		break;
+	case kImageTypeBMP:
+		decoder.reset(new Image::BitmapDecoder());
+		break;
+	case kImageTypeJPEG:
+		decoder.reset(new Image::JPEGDecoder());
+		break;
 	default:
 		warning("Surface::getImageInfo(): Unhandled image type: %d", (int)type);
 		return false;
@@ -1056,13 +1067,13 @@ bool Surface::loadBRC(Common::SeekableReadStream &stream, int16 left, int16 top,
 }
 
 bool Surface::loadBMP(Common::SeekableReadStream &stream, int16 left, int16 top, int16 right, int16 bottom, int16 x, int16 y, int16 transp, Graphics::PixelFormat format) {
-	warning("TODO: Surface::loadBMP()");
-	return false;
+	Image::BitmapDecoder decoder;
+	return loadImage(decoder, stream, left, top, right, bottom, x, y, transp, format);
 }
 
 bool Surface::loadJPEG(Common::SeekableReadStream &stream, int16 left, int16 top, int16 right, int16 bottom, int16 x, int16 y, int16 transp, Graphics::PixelFormat format) {
-	warning("TODO: Surface::loadJPEG()");
-	return false;
+	Image::JPEGDecoder decoder;
+	return loadImage(decoder, stream, left, top, right, bottom, x, y, transp, format);
 }
 
 } // End of namespace Gob

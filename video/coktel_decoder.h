@@ -87,6 +87,11 @@ public:
 			Audio::Mixer::SoundType soundType = Audio::Mixer::kPlainSoundType);
 	virtual ~CoktelDecoder();
 
+	static void computeHighColorMap(uint32* highColorMap, const byte* palette,
+									const Graphics::PixelFormat &format,
+									int16 startColor = 0, int16 colorCount = 256,
+									int16 startColorSrc = -1);
+
 	/** Replace the current video stream with this identical one. */
 	virtual bool reloadStream(Common::SeekableReadStream *stream) = 0;
 
@@ -191,6 +196,7 @@ public:
 
 	const byte *getPalette();
 	bool  hasDirtyPalette() const;
+	const uint32 *getHighColorMap();
 
 	uint32 getTimeToNextFrame() const;
 	uint32 getStaticTimeToNextFrame() const;
@@ -237,6 +243,7 @@ protected:
 	uint32 _startTime;
 
 	byte _palette[768];
+	uint32 _highColorMap[256];
 	bool _paletteDirty;
 
 	bool _isDouble;

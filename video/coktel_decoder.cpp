@@ -65,9 +65,40 @@ CoktelDecoder::CoktelDecoder(Audio::Mixer *mixer, Audio::Mixer::SoundType soundT
 	assert(_mixer);
 
 	memset(_palette, 0, 768);
+	memset(_highColorMap, 0, 256 * sizeof(uint32));
 }
 
 CoktelDecoder::~CoktelDecoder() {
+}
+
+void CoktelDecoder::computeHighColorMap(uint32 *highColorMap, const byte *palette,
+										const Graphics::PixelFormat &format,
+										int16 startColor, int16 colorCount,
+										int16 startColorSrc) {
+	if (!palette)
+		return;
+
+	if (startColorSrc < 0)
+		startColorSrc = startColor;
+
+	for (int16 i = 0; i < colorCount; i++) {
+		int indexSrc = (startColorSrc + i ) * 3;
+		byte red = palette[indexSrc];
+		byte green = palette[indexSrc + 1];
+		byte blue = palette[indexSrc + 2];
+
+		int indexDest = startColor + i;
+
+		// Trick from the original engine to handle transparency with high color surfaces
+		if (i == 0)
+			highColorMap[indexDest] = 0; // Palette index 0 is always mapped to high color value 0, possibly interpreted as the special transparent color.
+		else if (red == 0 && green == 0 && blue == 0)
+			highColorMap[indexDest] = format.RGBToColor((1 << format.rLoss),
+														(1 << format.gLoss),
+														(1 << format.bLoss)); // Blacks at other indexes are mapped to rgb(1, 1, 1) value to prevent interpreting them as transparent.
+		else
+			highColorMap[indexDest] = format.RGBToColor(red, green, blue);
+	}
 }
 
 bool CoktelDecoder::evaluateSeekFrame(int32 &frame, int whence) const {
@@ -323,6 +354,10 @@ uint32 CoktelDecoder::getFrameCount() const {
 const byte *CoktelDecoder::getPalette() {
 	_paletteDirty = false;
 	return _palette;
+}
+
+const uint32 *CoktelDecoder::getHighColorMap() {
+	return _highColorMap;
 }
 
 bool CoktelDecoder::hasDirtyPalette() const {
@@ -1974,6 +2009,10 @@ bool VMDDecoder::loadStream(Common::SeekableReadStream *stream) {
 			_palette[i] = _stream->readByte() << 2;
 
 		_paletteDirty = true;
+
+		Graphics::PixelFormat screenFormat = g_system->getScreenFormat();
+		if (screenFormat.bytesPerPixel > 1)
+			computeHighColorMap(_highColorMap, _palette, screenFormat);
 	}
 
 	uint32 videoBufferSize1 = _stream->readUint32LE();
@@ -2398,6 +2437,11 @@ void VMDDecoder::processFrame() {
 				for (int j = 0; j < ((count + 1) * 3); j++)
 					_palette[index * 3 + j] = _stream->readByte() << 2;
 
+				Graphics::PixelFormat screenFormat = g_system->getScreenFormat();
+				if (screenFormat.bytesPerPixel > 1) {
+					computeHighColorMap(_highColorMap, _palette, screenFormat, index, count);
+				}
+
 				_stream->skip((255 - count) * 3);
 
 				_paletteDirty = true;
@@ -2619,13 +2663,7 @@ void VMDDecoder::blitPalettedToHighColor(const Graphics::Surface &srcSurf, Commo
 	for (int x = rect.left; x < rect.left + rect.width(); x++) {
 		for (int y = rect.top; y < rect.top + rect.height(); y++) {
 			uint32 color = srcSurf.getPixel(x, y);
-
-			byte r = _palette[color * 3];
-			byte g = _palette[color * 3 + 1];
-			byte b = _palette[color * 3 + 2];
-
-			uint32 c = _surface.format.RGBToColor(r, g, b);
-			_surface.setPixel(x, y, c);
+			_surface.setPixel(x, y, _highColorMap[color]);
 		}
 	}
 }

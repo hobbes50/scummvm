@@ -1966,7 +1966,7 @@ void Inter_v7::o7_vmdReleaseSoundBuffer() {
 
 
 void Inter_v7::o7_printText(OpFuncParams &params) {
-	char buf[60];
+	char buf[152];
 	_vm->_draw->_destSpriteX = _vm->_game->_script->readValExpr();
 	_vm->_draw->_destSpriteY = _vm->_game->_script->readValExpr();
 

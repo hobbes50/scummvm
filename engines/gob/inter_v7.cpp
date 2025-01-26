@@ -1029,6 +1029,7 @@ void Inter_v7::o7_getINIValue() {
 	Common::String def     = _vm->_game->_script->evalString();
 
 	section = oemToANSI(section);
+	key.trim();
 	key     = oemToANSI(key);
 
 	Common::String value;
@@ -1048,6 +1049,7 @@ void Inter_v7::o7_setINIValue() {
 	Common::String value   = _vm->_game->_script->evalString();
 
 	section = oemToANSI(section);
+	key.trim();
 	key     = oemToANSI(key);
 	value   = oemToANSI(value);
 

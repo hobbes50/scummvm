@@ -840,7 +840,15 @@ int16 Game::checkKeys(int16 *pMouseX, int16 *pMouseY,
 			*pButtons = kMouseButtonsNone;
 	}
 
-	return _vm->_util->checkKey();
+	int16 key = _vm->_util->checkKey();
+	if (_vm->_game->_hasForwardedEventsFromVideo) {
+		if (pButtons)
+			*pButtons = _vm->_game->_forwardedMouseButtonsFromVideo;
+		key = _vm->_game->_forwardedKeyFromVideo;
+		_vm->_game->_hasForwardedEventsFromVideo = false;
+	}
+
+	return key;
 }
 
 void Game::start() {

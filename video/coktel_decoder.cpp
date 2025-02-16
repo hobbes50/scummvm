@@ -92,6 +92,8 @@ void CoktelDecoder::computeHighColorMap(uint32 *highColorMap, const byte *palett
 		// Trick from the original engine to handle transparency with high color surfaces
 		if (i == 0)
 			highColorMap[indexDest] = 0; // Palette index 0 is always mapped to high color value 0, possibly interpreted as the special transparent color.
+		else if (i == 255)
+			highColorMap[indexDest] = format.RGBToColor(0xFF, 0xFF, 0xFF); // Palette index 255 is always mapped to white.
 		else if (red == 0 && green == 0 && blue == 0)
 			highColorMap[indexDest] = format.RGBToColor((1 << format.rLoss),
 														(1 << format.gLoss),
